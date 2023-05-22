@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet css-->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+<!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+ crossorigin=""></script>
+ <style>
+  #issmap { 
+    height: 50em;  
+  }
+ </style>
+
+</head>
+<body>
+  <div class="container mx-auto">
+  <h1 class="text-4xl font-bold text-center text-white bg-gray-400 pt-4">
+   WHERE IS INTERNATION SPACE STATION CURRENTLY!
+  </h1>
+  <p class="text-3xl font-bold border rounded bg-black text-white "> Latitude: <span class="lat"> </span> °<br>
+  Longitude: <span class="lon"></span> °<br> Altitude: <span class="alt"></span> °</p>
+  <div id="issmap" class="mt-12 border rounded justify-center"></div>
+  </div>
+  <script>
+    
+    // making a map and a tile, using leaflet js
+    const mymap = L.map('issmap').setView([0, 0], 3);
+    const attribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    const tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    const tiles = L.tileLayer(tileUrl, { attribution})
+    tiles.addTo(mymap)
+    //make my customized icon
+    var myIcon = L.icon({
+    iconUrl: 'iss.png',
+    iconSize: [75, 75],
+    iconAnchor: [25, 16],
+});
+    // making a maker, using leaflet js
+    const maker = L.marker([0, 0], {icon: myIcon}).addTo(mymap);
+    // connecting to wheretheiss API
+    const api_url = "https://api.wheretheiss.at/v1/satellites/25544";
+    
+    let firstTime = true
+    //making the function to fetch data from the api 
+    async function getISS(){
+      const response = await fetch(api_url)
+      const data = await response.json()
+      const { latitude, longitude, altitude} = data
+      // assigning latitude and longitude values gotten from the api to the marker
+      maker.setLatLng([latitude,longitude])
+      if (firstTime){
+      mymap.setView([latitude,longitude], 3)
+        firstTime = false
+      }
+      document.querySelector('.lat').innerText = latitude.toFixed(3)
+      document.querySelector('.lon').innerText = longitude.toFixed(3)
+      document.querySelector('.alt').innerText = altitude.toFixed(3)
+      // console.log(data);
+    }
+
+    // calling the function
+    getISS()
+
+    setInterval(getISS, 1000)
+  </script>
+</body>
+</html>
